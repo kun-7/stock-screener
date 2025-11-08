@@ -6,7 +6,7 @@ st.title("📊 日本株スクリーナー")
 
 # --- UI設定 ---
 st.sidebar.header("スクリーニング条件")
-screener_options = ["出来高・価格", "ゴールデンクロス"]
+screener_options = ["出来高・価格", "移動平均線", "すべて"]
 screener_name = st.sidebar.radio("スクリーナーを選択", screener_options)
 
 tickers_input = st.text_area(
