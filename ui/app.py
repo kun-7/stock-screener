@@ -51,13 +51,14 @@ if st.button("スクリーニング実行"):
             
         st.write(f"（対象銘柄数: {len(tickers)} 件）") # 取得件数を表示
 
-        # ▼▼▼ 追記 ▼▼▼
-        # プログレスバーの「空の入れ物」を作成
-        progress_bar = st.progress(0, text="処理開始...")
-        # ▲▲▲ 追記 ▲▲▲
-
-        # 修正: run 関数にプログレスバーを渡す
-        results = run(tickers, selected_key, progress_bar) 
+        # ▼▼▼ 修正 ▼▼▼
+        # 1. 「一括ダウンロード中」のスピナーを表示
+        with st.spinner(f'全 {len(tickers)} 銘柄の株価データを一括取得中...（これには数十秒かかります）'):
+            # 2. プログレスバーはまだ出さずに、run() を呼び出す
+            #    (この内部で、まず get_batch_stock_data が実行される)
+            progress_bar = st.progress(0, text="処理開始...")
+            results = run(tickers, selected_key, progress_bar) 
+        # ▲▲▲ 修正 ▲▲▲
 
         # 修正: 処理完了後、プログレスバーを消す
         progress_bar.empty()
