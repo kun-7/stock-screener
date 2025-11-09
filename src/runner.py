@@ -1,5 +1,5 @@
 # (インポートは変更なし)
-from .data_fetcher import get_stock_data
+from .data_fetcher import get_batch_stock_data
 from .screeners.volume_price import VolumePriceScreener
 from .screeners.ma_screener import MAScreener
 
@@ -19,19 +19,29 @@ def run(tickers, screener_key: str, progress_bar=None):
         ]
     
     results = []
-    total = len(tickers) # 全件数を取得
-
-    # 修正2: enumerate を使って、ループのインデックス(i)も取得する
+    # ▼▼▼ 修正 ▼▼▼
+    # 1. ループの「前」に、全銘柄のデータを「一括」でダウンロード
+    #    progress_bar をそのまま data_fetcher に渡す
+    all_data = get_batch_stock_data(tickers, progress_bar=progress_bar)
+    # ▲▲▲ 修正 ▲▲▲
+    
+    total = len(tickers)
     for i, t in enumerate(tickers):
         
-        # ▼▼▼ 追記 ▼▼▼
-        # プログレスバーを更新
+        # ▼▼▼ 修正 ▼▼▼
+        # プログレスバーのテキストを「分析中」に変更
+        # ダウンロード完了後、バーが0から再スタートする
         if progress_bar:
             percent_complete = (i + 1) / total
-            progress_bar.progress(percent_complete, text=f"処理中: {t} ({i + 1}/{total})")
-        # ▲▲▲ 追記 ▲▲▲
-        df = get_stock_data(t)
-        if df.empty:
+            progress_bar.progress(percent_complete, text=f"[分析中] {t} ({i + 1}/{total})")
+        # ▲▲▲ 修正 ▲▲▲
+        
+        try:
+            df = all_data[t].copy()
+            if df.empty or df['Close'].isnull().all():
+                continue 
+        except KeyError:
+            print(f"警告: {t} のデータが all_data に見つかりません。スキップします。")
             continue
             
         passed_all = True
