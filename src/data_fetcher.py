@@ -9,8 +9,7 @@ def get_stock_data(ticker: str, period="3mo", interval="1d") -> pd.DataFrame:
     df = tk.history(period=period, interval=interval)
     return df
 
-# ▼▼▼ この関数を丸ごと差し替え ▼▼▼
-def get_batch_stock_data(tickers: list, period="3mo", interval="1d", progress_bar=None): # 修正1: progress_bar を引数で受け取る
+def get_batch_stock_data(tickers: list, period="3mo", interval="1d", progress_bar=None):
     
     chunk_size = 100 
     all_data_frames = []
@@ -48,13 +47,9 @@ def get_batch_stock_data(tickers: list, period="3mo", interval="1d", progress_ba
         chunk = tickers[i : i + chunk_size]
         current_chunk_num = (i // chunk_size) + 1
         
-        # ▼▼▼ 追記 ▼▼▼
-        # 修正2: ダウンロード「前」に、UIのプログレスバーを更新
         if progress_bar:
-            # 進捗は「今何件目か / 総件数」で計算 (例: 0/1616, 100/1616, ...)
             percent_complete = i / len(tickers)
             progress_bar.progress(percent_complete, text=f"[ダウンロード {current_chunk_num} / {total_chunks}] 実行中...")
-        # ▲▲▲ 追記 ▲▲▲
 
         try:
             data = download_chunk_with_retry(chunk, current_chunk_num, total_chunks)
@@ -65,12 +60,9 @@ def get_batch_stock_data(tickers: list, period="3mo", interval="1d", progress_ba
             
         time.sleep(0.5) 
 
-    # ▼▼▼ 追記 ▼▼▼
-    # 修正3: ダウンロード完了をUIに通知
     if progress_bar:
         progress_bar.progress(1.0, text="[ダウンロード完了] 分析処理に移行...")
-    # ▲▲▲ 追記 ▲▲▲
-
+        
     print("yfinance: 全チャンクのダウンロード完了")
     
     combined_data = pd.concat([df for df in all_data_frames if df is not None], axis=1)
